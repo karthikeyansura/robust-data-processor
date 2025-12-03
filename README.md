@@ -64,7 +64,7 @@ On Windows:
 ```bash
 curl -X POST "YOUR_API_ENDPOINT" \
 -H "Content-Type: application/json" \
--d '{"tenant_id": "acme_corp", "log_id": "101", "text": "User 555-0199 logged in from 192.168.1.1"}'
+-d '{"tenant_id": "acme_corp", "log_id": "101", "text": "User 800-555-0199 logged in from 192.168.1.1"}'
 ```
 
 ### 2. **Unstructured Test (Normalization)**
