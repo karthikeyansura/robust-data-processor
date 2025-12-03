@@ -8,40 +8,8 @@ A high-throughput, event-driven backend pipeline designed to ingest, process, an
 
 ## Architecture
 
-The system utilizes a **Fan-out / Async Decoupling** pattern to handle burst traffic without degrading performance.
-
-```mermaid
-flowchart LR
-    Client([Client / Chaos Script])
-    
-    subgraph "Ingestion Layer"
-        APIGW[["API Gateway<br>(HTTP API)"]]
-        IngestLambda[/"Ingest Lambda<br>(Go Runtime)"/]
-    end
-
-    subgraph "Async Buffering"
-        SQS[("SQS Queue<br>(Standard)")]
-        DLQ[("Dead Letter Queue")]
-    end
-
-    subgraph "Processing Layer"
-        WorkerLambda[/"Worker Lambda<br>(Go Runtime)"/]
-        DynamoDB[("DynamoDB<br>(MultiTenantLogs)")]
-    end
-
-    Client -->|POST /ingest| APIGW
-    APIGW -->|Invoke| IngestLambda
-    IngestLambda -->|Normalize & Validate| IngestLambda
-    IngestLambda -->|1. Send Message| SQS
-    IngestLambda -.->|2. 202 Accepted| APIGW
-    
-    SQS -->|Trigger Batch| WorkerLambda
-    WorkerLambda -->|Simulate Work & Redact PII| WorkerLambda
-    WorkerLambda -->|PutItem (Partition: tenant_id)| DynamoDB
-    
-    WorkerLambda -.->|BatchItemFailure| SQS
-    SQS -.->|Max Retries Exceeded| DLQ
-```
+![Architechture](Architechture.png)
+The system utilizes a **Async Decoupling** pattern to handle burst traffic without degrading performance.
 
 ## Key Components
 
@@ -88,7 +56,7 @@ On Windows:
 
 ---
 
-## Testing & Verification
+## Testing & Chaos Simulation
 
 ### 1. **Flood Test (Ingestion)**
 
@@ -104,7 +72,7 @@ curl -X POST "YOUR_API_ENDPOINT" \
 curl -X POST "YOUR_API_ENDPOINT" \
 -H "Content-Type: text/plain" \
 -H "X-Tenant-ID: beta_inc" \
--d "Raw log dump: error caused by john.doe@example.com at system root."
+-d "This is a raw log file dump that will take some time to process."
 ```
 
 ### 3. **Isolation & PII Check (Database)**
@@ -113,22 +81,11 @@ curl -X POST "YOUR_API_ENDPOINT" \
 aws dynamodb scan --table-name MultiTenantLogs --profile evaluator
 ```
 
-**Expected Output:**
-
-```json
-{
-    "tenant_id": "acme_corp",
-    "original_text": "User 555-0199 logged in...",
-    "modified_data": "User [REDACTED] logged in...",
-    "status": "PROCESSED"
-}
-```
-
 ---
 
 ## Evaluator Access
 
-A read-only IAM user `backend_evaluator` is generated.
+A read-only IAM user `backend_evaluator` is generated for evaluation purposes.
 
 ```bash
 terraform output -raw evaluator_access_key
@@ -150,4 +107,11 @@ aws configure --profile evaluator
 ├── build.ps1           # Windows Build Script
 ├── go.mod              # Go Dependencies
 └── README.md           # Documentation
+```
+
+## Cleanup
+To destroy all AWS resources:
+
+```bash
+bashterraform destroy
 ```
