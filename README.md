@@ -8,7 +8,8 @@ A high-throughput, event-driven backend pipeline designed to ingest, process, an
 
 ## Architecture
 
-![Architechture](Architechture.png)
+![Architecture](Architecture.png)
+
 The system utilizes a **Async Decoupling** pattern to handle burst traffic without degrading performance.
 
 ## Key Components
