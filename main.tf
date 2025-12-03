@@ -132,7 +132,7 @@ resource "aws_lambda_function" "ingest_lambda" {
   role             = aws_iam_role.ingest_role.arn
   handler          = "bootstrap"
   runtime          = "provided.al2023"
-  architectures    = ["amd64"]
+  architectures    = ["x86_64"]
   source_code_hash = fileexists("ingest.zip") ? filebase64sha256("ingest.zip") : null
   timeout          = 10
   memory_size      = 256
@@ -150,7 +150,7 @@ resource "aws_lambda_function" "worker_lambda" {
   role             = aws_iam_role.worker_role.arn
   handler          = "bootstrap"
   runtime          = "provided.al2023"
-  architectures    = ["amd64"]
+  architectures    = ["x86_64"]
   source_code_hash = fileexists("worker.zip") ? filebase64sha256("worker.zip") : null
   timeout          = 60
   memory_size      = 256
