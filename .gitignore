@@ -1,0 +1,27 @@
+# Binaries
+*.exe
+*.zip
+bootstrap_ingest
+bootstrap_worker
+bootstrap
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive Information
+*.pem
+*.key
+credentials
