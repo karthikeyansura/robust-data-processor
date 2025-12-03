@@ -44,7 +44,7 @@ resource "aws_sqs_queue" "dlq" {
 
 resource "aws_sqs_queue" "ingest_queue" {
   name                       = "ingest-queue"
-  visibility_timeout_seconds = 60 # Must be >= Lambda timeout
+  visibility_timeout_seconds = 900 # Must be >= Lambda timeout
   receive_wait_time_seconds  = 20 # Long polling
 
   redrive_policy = jsonencode({
@@ -211,6 +211,36 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
+# EVALUATOR ACCESS (to inspect DB)
+
+resource "aws_iam_user" "evaluator" {
+  name = "backend_evaluator"
+}
+
+resource "aws_iam_access_key" "evaluator_key" {
+  user = aws_iam_user.evaluator.name
+}
+
+resource "aws_iam_user_policy" "evaluator_read_only" {
+  name = "DynamoDBReadOnly"
+  user = aws_iam_user.evaluator.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:BatchGetItem",
+        "dynamodb:DescribeTable"
+      ]
+      Resource = aws_dynamodb_table.logs_table.arn
+    }]
+  })
+}
+
 # OUTPUTS
 
 output "api_endpoint" {
@@ -228,4 +258,15 @@ output "sqs_queue_url" {
 
 output "dlq_url" {
   value = aws_sqs_queue.dlq.url
+}
+
+output "evaluator_access_key" {
+  description = "Access Key ID for evaluator"
+  value       = aws_iam_access_key.evaluator_key.id
+}
+
+output "evaluator_secret_key" {
+  description = "Secret Key for evaluator"
+  value       = aws_iam_access_key.evaluator_key.secret
+  sensitive   = true
 }
