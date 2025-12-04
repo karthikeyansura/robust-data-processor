@@ -25,3 +25,6 @@ Thumbs.db
 *.pem
 *.key
 credentials
+
+# Testing & Chaos Simulation
+Testing & Chaos Simulation.txt

@@ -114,5 +114,5 @@ aws configure --profile evaluator
 To destroy all AWS resources:
 
 ```bash
-bashterraform destroy
+terraform destroy
 ```
